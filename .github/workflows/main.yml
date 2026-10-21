@@ -1,5 +1,5 @@
 
-name: Deploy Keabi Tech Portfolio
+name: Build and Deploy Keabi Tech
 
 on:
   push:
@@ -17,11 +17,8 @@ concurrency:
 
 jobs:
   build:
+    name: Build React Website
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: keabi-tech-personal-website
 
     steps:
       - name: Checkout repository
@@ -32,18 +29,36 @@ jobs:
         with:
           node-version: 22
 
+      - name: Locate React project
+        id: project
+        shell: bash
+        run: |
+          if [ -f "package.json" ]; then
+            echo "dir=." >> "$GITHUB_OUTPUT"
+          elif [ -f "keabi-tech-personal-website/package.json" ]; then
+            echo "dir=keabi-tech-personal-website" >> "$GITHUB_OUTPUT"
+          else
+            echo "ERROR: package.json was not found."
+            echo "Repository files:"
+            ls -la
+            exit 1
+          fi
+
       - name: Install dependencies
-        run: npm install --no-audit --no-fund --verbose
+        working-directory: ${{ steps.project.outputs.dir }}
+        run: npm install --no-audit --no-fund
 
       - name: Build React website
+        working-directory: ${{ steps.project.outputs.dir }}
         run: npm run build
 
       - name: Upload website artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: keabi-tech-personal-website/dist
+          path: ${{ steps.project.outputs.dir }}/dist
 
   deploy:
+    name: Deploy to GitHub Pages
     runs-on: ubuntu-latest
     needs: build
 
@@ -52,6 +67,6 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - name: Deploy to GitHub Pages
+      - name: Publish website
         id: deployment
         uses: actions/deploy-pages@v4
