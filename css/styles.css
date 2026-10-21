@@ -4,7 +4,9 @@
    Aesthetic: Dark developer cinematic with vivid burnt orange accents (#FF6A00)
    No overlapping, no layout collisions, pure responsive precision.
    ========================================================================== */
-
+h1{
+   color:red;
+}
 :root {
   /* Colors - Dark Theme (Default) */
   --bg-primary: #0a0b0e;
